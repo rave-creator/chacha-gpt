@@ -3,48 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaCha GPT - Pro AI</title>
-    <!-- Styles pour le code (Coloration syntaxique) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
-    <!-- Notre style -->
+    <title>ChaCha AI Studio</title>
+    <!-- Font Inter (Police Pro) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Icones Phosphor (Plus clean que FontAwesome) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Coloration Syntaxique (Code beautifier) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <!-- CSS Perso -->
     <link rel="stylesheet" href="style.css">
-    <!-- Icones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     
-    <!-- Sidebar / Header pour mobile -->
-    <div class="sidebar">
-        <div class="logo">
-            <i class="fa-solid fa-robot"></i> ChaCha GPT
-        </div>
-        <p class="description">Assistant IA Professionnel</p>
-        <div class="version">v2.0 Pro</div>
+    <div class="app-container">
+        <!-- Sidebar Gauche -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="ph-fill ph-brain"></i>
+                <span>ChaCha AI</span>
+            </div>
+            <div class="nav-links">
+                <button class="active"><i class="ph ph-chat-circle-text"></i> Nouveau Chat</button>
+            </div>
+            <div class="footer-sidebar">
+                <p>Propulsé par Gemini Pro</p>
+                <div class="status-dot"><span class="dot online"></span> En ligne</div>
+            </div>
+        </aside>
+
+        <!-- Zone de Chat Principale -->
+        <main class="chat-wrapper">
+            <!-- Header Mobile uniquement -->
+            <header class="mobile-header">
+                ChaCha AI Studio
+            </header>
+
+            <div id="chat-container">
+                <!-- Message d'intro -->
+                <div class="message ai welcome-msg">
+                    <div class="bubble">
+                        <h2>Bonjour ! 👋</h2>
+                        <p>Je suis ChaCha AI, version Pro. Je peux analyser du code, rédiger des documents et t'aider dans tes projets complexes. On commence ?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <div class="input-box">
+                    <textarea id="user-input" placeholder="Posez votre question à ChaCha AI..." rows="1" oninput="autoResize(this)"></textarea>
+                    <button id="send-btn" onclick="sendMessage()">
+                        <i class="ph-fill ph-paper-plane-right"></i>
+                    </button>
+                </div>
+                <p class="disclaimer">L'IA peut faire des erreurs. Vérifiez les informations critiques.</p>
+            </div>
+        </main>
     </div>
 
-    <!-- Interface principale de chat -->
-    <main class="chat-interface">
-        <div id="chat-container">
-            <!-- Message de bienvenue -->
-            <div class="message bot">
-                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
-                <div class="content">Bonjour, je suis <strong>ChaCha GPT</strong>. Je suis un assistant intelligent et puissant. Que puis-je faire pour vous (code, rédaction, analyse) ?</div>
-            </div>
-        </div>
-
-        <!-- Zone de saisie -->
-        <div class="input-area">
-            <div class="input-wrapper">
-                <textarea id="user-input" placeholder="Envoyer un message à ChaCha GPT..." rows="1" oninput="autoResize(this)"></textarea>
-                <button id="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-            <p class="disclaimer">ChaCha GPT peut commettre des erreurs. Vérifiez les informations importantes.</p>
-        </div>
-    </main>
-
-    <!-- Scripts pour Markdown et la coloration du code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- Scripts Logique & Formatage -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
