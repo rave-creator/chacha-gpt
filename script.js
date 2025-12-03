@@ -1,11 +1,13 @@
 // ================= CONFIGURATION =================
-const API_KEY = "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"; // ⚠️ REMPLACEZ CECI PAR VOTRE CLÉ OPENAI
+// Collez votre clé entre les guillemets.
+const API_KEY = "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"; 
 // =================================================
 
+// CONFIGURATION IA
 let conversationHistory = [
     { 
         role: "system", 
-        content: "Tu es ChaCha GPT, un assistant IA utile, expert en programmation et en rédaction. Tu es précis et poli." 
+        content: "Tu es ChaCha GPT, une IA super cool et sympa. Tu utilises des émojis et tu es concise." 
     }
 ];
 
@@ -13,13 +15,12 @@ const inputField = document.getElementById("user-input");
 const chatContainer = document.getElementById("chat-container");
 const sendButton = document.getElementById("send-btn");
 
-// Gestion de la hauteur auto du textarea
-function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
+// Cette fonction nettoie votre clé au cas où vous avez mis des espaces
+function getCleanKey() {
+    return API_KEY.trim(); 
 }
 
-// Envoyer avec Enter (sauf si Shift+Enter)
+// Envoyer avec Enter
 inputField.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -27,64 +28,83 @@ inputField.addEventListener("keydown", (e) => {
     }
 });
 
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
 async function sendMessage() {
     const userText = inputField.value.trim();
+    const cleanKey = getCleanKey();
+
     if (!userText) return;
 
-    // UI : Désactiver l'entrée
+    if (!cleanKey || cleanKey.length < 10 || cleanKey.startsWith("sk-...") ) {
+        alert("⚠️ ERREUR : Vous n'avez pas mis votre vraie Clé API dans le fichier script.js !");
+        return;
+    }
+
+    // UI Updates
     inputField.value = "";
     inputField.style.height = 'auto';
     inputField.disabled = true;
     sendButton.disabled = true;
 
-    // 1. Ajouter le message USER à l'écran
     addMessageToUI("user", userText);
-    
-    // 2. Ajouter à l'historique IA
     conversationHistory.push({ role: "user", content: userText });
 
-    // 3. Ajouter l'indicateur de chargement
     const loadingId = "loading-" + Date.now();
     addLoadingSpinner(loadingId);
 
     try {
+        console.log("Tentative d'envoi à OpenAI...");
+        
+        // CORRECTION DU PROBLEME FETCH
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
+            //referrerPolicy: "no-referrer", // Astuce pour éviter certains blocages
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`
+                "Authorization": `Bearer ${cleanKey}`
             },
             body: JSON.stringify({
-                model: "gpt-3.5-turbo", // ou "gpt-4" si vous y avez accès
+                model: "gpt-3.5-turbo",
                 messages: conversationHistory,
-                temperature: 0.7
+                temperature: 0.8
             })
         });
 
-        const data = await response.json();
-
-        // Retirer le loading
-        document.getElementById(loadingId).remove();
-
-        if (data.error) {
-            addMessageToUI("bot", "🔴 Erreur API : " + data.error.message);
-        } else {
-            const aiText = data.choices[0].message.content;
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Erreur API Details:", errorData);
             
-            // 4. Ajouter le message IA à l'écran
-            addMessageToUI("bot", aiText);
+            let msg = "Erreur " + response.status;
+            if(response.status === 401) msg = "Erreur de Clé API (Invalide). Vérifiez le code.";
+            if(response.status === 429) msg = "Plus de crédits ($) sur votre compte OpenAI.";
+            if(response.status === 404) msg = "Erreur 404: Modèle ou lien incorrect.";
             
-            // 5. Sauvegarder dans l'historique pour le contexte
-            conversationHistory.push({ role: "assistant", content: aiText });
+            throw new Error(msg);
         }
 
+        const data = await response.json();
+        
+        // Retirer le spinner
+        const loader = document.getElementById(loadingId);
+        if(loader) loader.remove();
+
+        const aiText = data.choices[0].message.content;
+        addMessageToUI("bot", aiText);
+        conversationHistory.push({ role: "assistant", content: aiText });
+
     } catch (error) {
-        document.getElementById(loadingId)?.remove();
-        addMessageToUI("bot", "🔴 Erreur de connexion.");
-        console.error(error);
+        console.error("ERREUR CRITIQUE:", error);
+        const loader = document.getElementById(loadingId);
+        if(loader) loader.remove();
+        
+        // Message d'aide affiché direct dans le chat
+        addMessageToUI("bot", "🔴 <b>" + error.message + "</b><br>Si c'est 'TypeError: Failed to fetch', désactivez AdBlock ou changez de réseau (Wifi Pro/Ecole bloque souvent OpenAI).");
     }
 
-    // Réactiver l'entrée
     inputField.disabled = false;
     sendButton.disabled = false;
     inputField.focus();
@@ -93,18 +113,13 @@ async function sendMessage() {
 function addMessageToUI(role, text) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message", role);
+    const iconHtml = role === "user" ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
 
-    const iconHtml = role === "user" 
-        ? '<i class="fa-solid fa-user"></i>' 
-        : '<i class="fa-solid fa-robot"></i>';
-
-    // Utilisation de Marked.js pour transformer le **Gras** et les ```Codes``` en HTML
-    // Note : On ne parse pas le markdown de l'utilisateur pour éviter les injections, juste le Bot.
     let contentHtml = text;
-    if (role === "bot") {
-        contentHtml = marked.parse(text); 
+    // Si marked (le convertisseur Markdown) est chargé, on l'utilise
+    if (role === "bot" && typeof marked !== 'undefined') {
+        contentHtml = marked.parse(text);
     } else {
-        // Sécuriser le texte utilisateur
         contentHtml = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
     }
 
@@ -115,14 +130,13 @@ function addMessageToUI(role, text) {
 
     chatContainer.appendChild(messageDiv);
     
-    // Si c'est un bot, appliquer la coloration syntaxique au code généré
-    if (role === "bot") {
+    if (role === "bot" && typeof hljs !== 'undefined') {
         messageDiv.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightElement(block);
         });
     }
-
-    scrollToBottom();
+    
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function addLoadingSpinner(id) {
@@ -131,14 +145,8 @@ function addLoadingSpinner(id) {
     loaderDiv.id = id;
     loaderDiv.innerHTML = `
         <div class="avatar"><i class="fa-solid fa-robot"></i></div>
-        <div class="content typing-indicator">
-            <span></span><span></span><span></span>
-        </div>
+        <div class="content typing-indicator"><span></span><span></span><span></span></div>
     `;
     chatContainer.appendChild(loaderDiv);
-    scrollToBottom();
-}
-
-function scrollToBottom() {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
