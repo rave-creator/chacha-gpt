@@ -1,6 +1,6 @@
 // ==================== CONFIGURATION PRO ====================
 // OBTENEZ VOTRE CLÉ GRATUITE ICI : https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = "AIza......................................"; 
+const GEMINI_API_KEY = "AIzaSyC9U0mmD6W9XH01oIGXC8DTCC5ip2IlZTo"; 
 // ===========================================================
 
 // --- Variables Système ---
